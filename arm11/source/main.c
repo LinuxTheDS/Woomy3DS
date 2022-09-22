@@ -1,33 +1,7 @@
 /*
-*   This file is part of Luma3DS
-*   Copyright (C) 2016-2020 Aurora Wright, TuxSH
-*
-*   This program is free software: you can redistribute it and/or modify
-*   it under the terms of the GNU General Public License as published by
-*   the Free Software Foundation, either version 3 of the License, or
-*   (at your option) any later version.
-*
-*   This program is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*   GNU General Public License for more details.
-*
-*   You should have received a copy of the GNU General Public License
-*   along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*
-*   Additional Terms 7.b and 7.c of GPLv3 apply to this file:
-*       * Requiring preservation of specified reasonable legal notices or
-*         author attributions in that material or in the Appropriate Legal
-*         Notices displayed by works containing it.
-*       * Prohibiting misrepresentation of the origin of that material,
-*         or requiring that modified versions of such material be marked in
-*         reasonable ways as different from the original version.
+* Woomy
 */
 
-/*
-*   Screen init code by dark_samus, bil1s, Normmatt, delebile and others
-*   LCD deinit code by tiniVi
-*/
 
 #include "types.h"
 #include "memory.h"
@@ -41,7 +15,7 @@ static void initScreens(u32 brightnessLevel, struct fb *fbs)
 {
     *(vu32 *)0x10141200 = 0x1007F;
 
-    *(vu32 *)0x10202204 = 0x01000000; //set LCD fill black to hide potential garbage -- NFIRM does it before firmlaunching
+    *(vu32 *)0x10202204 = 0x01000000;
     *(vu32 *)0x10202A04 = 0x01000000;
 
     *(vu32 *)0x10202014 = 0x00000001;
@@ -50,8 +24,6 @@ static void initScreens(u32 brightnessLevel, struct fb *fbs)
     *(vu32 *)0x10202A40 = brightnessLevel;
     *(vu32 *)0x10202244 = 0x1023E;
     *(vu32 *)0x10202A44 = 0x1023E;
-
-    //Top screen
     *(vu32 *)0x10400400 = 0x000001c2;
     *(vu32 *)0x10400404 = 0x000000d1;
     *(vu32 *)0x10400408 = 0x000001c1;
@@ -84,11 +56,9 @@ static void initScreens(u32 brightnessLevel, struct fb *fbs)
     *(vu32 *)0x10400490 = 0x000002D0;
     *(vu32 *)0x1040049C = 0x00000000;
 
-    //Disco register
     for(u32 i = 0; i < 256; i++)
         *(vu32 *)0x10400484 = 0x10101 * i;
 
-    //Bottom screen
     *(vu32 *)0x10400500 = 0x000001c2;
     *(vu32 *)0x10400504 = 0x000000d1;
     *(vu32 *)0x10400508 = 0x000001c1;
@@ -119,17 +89,16 @@ static void initScreens(u32 brightnessLevel, struct fb *fbs)
     *(vu32 *)0x10400590 = 0x000002D0;
     *(vu32 *)0x1040059C = 0x00000000;
 
-    //Disco register
     for(u32 i = 0; i < 256; i++)
         *(vu32 *)0x10400584 = 0x10101 * i;
 
-    *(vu32 *)0x10202204 = 0x00000000; //unset LCD fill
+    *(vu32 *)0x10202204 = 0x00000000;
     *(vu32 *)0x10202A04 = 0x00000000;
 }
 
 static void setupFramebuffers(struct fb *fbs)
 {
-    *(vu32 *)0x10202204 = 0x01000000; //set LCD fill black to hide potential garbage -- NFIRM does it before firmlaunching
+    *(vu32 *)0x10202204 = 0x01000000;
     *(vu32 *)0x10202A04 = 0x01000000;
 
     *(vu32 *)0x10400468 = (u32)fbs[0].top_left;
@@ -139,7 +108,6 @@ static void setupFramebuffers(struct fb *fbs)
     *(vu32 *)0x10400568 = (u32)fbs[0].bottom;
     *(vu32 *)0x1040056c = (u32)fbs[1].bottom;
 
-    //Set framebuffer format, framebuffer select and stride
     *(vu32 *)0x10400470 = 0x80341;
     *(vu32 *)0x10400478 = 0;
     *(vu32 *)0x10400490 = 0x2D0;
@@ -147,26 +115,25 @@ static void setupFramebuffers(struct fb *fbs)
     *(vu32 *)0x10400578 = 0;
     *(vu32 *)0x10400590 = 0x2D0;
 
-    *(vu32 *)0x10202204 = 0x00000000; //unset LCD fill
+    *(vu32 *)0x10202204 = 0x00000000;
     *(vu32 *)0x10202A04 = 0x00000000;
 }
 
 static void clearScreens(struct fb *fb)
 {
-    //Setting up two simultaneous memory fills using the GPU
 
     vu32 *REGs_PSC0 = (vu32 *)0x10400010,
          *REGs_PSC1 = (vu32 *)0x10400020;
 
-    REGs_PSC0[0] = (u32)fb->top_left >> 3; //Start address
+    REGs_PSC0[0] = (u32)fb->top_left >> 3;
     REGs_PSC0[1] = (u32)(fb->top_left + SCREEN_TOP_FBSIZE) >> 3; //End address
-    REGs_PSC0[2] = 0; //Fill value
-    REGs_PSC0[3] = (2 << 8) | 1; //32-bit pattern; start
+    REGs_PSC0[2] = 0;
+    REGs_PSC0[3] = (2 << 8) | 1;
 
-    REGs_PSC1[0] = (u32)fb->bottom >> 3; //Start address
-    REGs_PSC1[1] = (u32)(fb->bottom + SCREEN_BOTTOM_FBSIZE) >> 3; //End address
-    REGs_PSC1[2] = 0; //Fill value
-    REGs_PSC1[3] = (2 << 8) | 1; //32-bit pattern; start
+    REGs_PSC1[0] = (u32)fb->bottom >> 3;
+    REGs_PSC1[1] = (u32)(fb->bottom + SCREEN_BOTTOM_FBSIZE) >> 3;
+    REGs_PSC1[2] = 0;
+    REGs_PSC1[3] = (2 << 8) | 1;
 
     while(!((REGs_PSC0[3] & 2) && (REGs_PSC1[3] & 2)));
 }
@@ -180,14 +147,12 @@ static void swapFramebuffers(bool isAlternate)
 
 static void updateBrightness(u32 brightnessLevel)
 {
-    //Change brightness
     *(vu32 *)0x10202240 = brightnessLevel;
     *(vu32 *)0x10202A40 = brightnessLevel;
 }
 
 static void deinitScreens(void)
 {
-    //Shutdown LCDs
     *(vu32 *)0x10202A44 = 0;
     *(vu32 *)0x10202244 = 0;
     *(vu32 *)0x10202014 = 0;
