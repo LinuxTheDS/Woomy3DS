@@ -1,9 +1,6 @@
 OUTPUT_FORMAT("elf32-littlearm", "elf32-bigarm", "elf32-littlearm")
 OUTPUT_ARCH(arm)
 ENTRY(_start)
-
-/* Mostly copied from https://github.com/devkitPro/buildscripts/blob/master/dkarm-eabi/crtls/3dsx.ld */
-
 PHDRS
 {
     main PT_LOAD;
@@ -21,8 +18,6 @@ SECTIONS
     {
         KEEP( *(.text.start) )
         KEEP( *(.init) )
-
-        /* .text */
         *(.text)
         *(.text.*)
         *(.glue_7)
@@ -31,7 +26,6 @@ SECTIONS
         *(.gnu.warning)
         *(.gnu.linkonce.t*)
 
-        /* .fini */
         KEEP( *(.fini) )
         . = ALIGN(32);
     } :main
@@ -72,11 +66,11 @@ SECTIONS
 
     .ctors :
     {
-        KEEP (*crtbegin.o(.ctors)) /* MUST be first -- GCC requires it */
+        KEEP (*crtbegin.o(.ctors))
         KEEP (*(EXCLUDE_FILE (*crtend.o) .ctors))
         KEEP (*(SORT(.ctors.*)))
         KEEP (*(.ctors))
-        . = ALIGN(4);   /* REQUIRED. LD is flaky without it. */
+        . = ALIGN(4);
     }
 
     .dtors :
@@ -85,7 +79,7 @@ SECTIONS
         KEEP (*(EXCLUDE_FILE (*crtend.o) .dtors))
         KEEP (*(SORT(.dtors.*)))
         KEEP (*(.dtors))
-        . = ALIGN(4);   /* REQUIRED. LD is flaky without it. */
+        . = ALIGN(4);
     }
 
     .ARM.extab : { *(.ARM.extab* .gnu.linkonce.armextab.*) __exidx_start = .;}
@@ -115,39 +109,19 @@ SECTIONS
     } :NONE
 
     PROVIDE (__end__ = ABSOLUTE(.));
-
-    /* ==================
-       ==== Metadata ====
-       ================== */
-
-    /* Discard sections that difficult post-processing */
     /DISCARD/ : { *(.group .comment .note) }
-
-    /* Stabs debugging sections. */
     .stab          0 : { *(.stab) }
     .stabstr       0 : { *(.stabstr) }
     .stab.excl     0 : { *(.stab.excl) }
     .stab.exclstr  0 : { *(.stab.exclstr) }
     .stab.index    0 : { *(.stab.index) }
     .stab.indexstr 0 : { *(.stab.indexstr) }
-
-    /* DWARF debug sections.
-       Symbols in the DWARF debugging sections are relative to the beginning
-       of the section so we begin them at 0. */
-
-    /* DWARF 1 */
     .debug          0 : { *(.debug) }
     .line           0 : { *(.line) }
-
-    /* GNU DWARF 1 extensions */
     .debug_srcinfo  0 : { *(.debug_srcinfo) }
     .debug_sfnames  0 : { *(.debug_sfnames) }
-
-    /* DWARF 1.1 and DWARF 2 */
     .debug_aranges  0 : { *(.debug_aranges) }
     .debug_pubnames 0 : { *(.debug_pubnames) }
-
-    /* DWARF 2 */
     .debug_info     0 : { *(.debug_info) }
     .debug_abbrev   0 : { *(.debug_abbrev) }
     .debug_line     0 : { *(.debug_line) }
