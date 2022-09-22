@@ -7,7 +7,7 @@
 Woomy3DS has its own in-game menu, triggerable by <kbd>L+Down+Select</kbd>
 
 ### Building
-*Its * [here](https://linuxtheds.github.io)
+*Its* [ here](https://linuxtheds.github.io)
 
 #
 ### Licensing
